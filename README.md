@@ -1,6 +1,6 @@
 # Heroku Buildpack for Ghostscript
 
-Currently installs Ghostscript 9.54.0 on Heroku.
+Currently installs Ghostscript 10.08.0 on Heroku, built from source (Artifex no longer publishes prebuilt Linux binaries), so deploys take a few minutes longer.
 
 ## Install
 

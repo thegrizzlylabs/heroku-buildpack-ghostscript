@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-echo "-----> Installing Ghostscript 9.54.0"
+set -e
+
+echo "-----> Installing Ghostscript 10.08.0"
 
 BUILD_DIR=$1
-PACKAGE="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9540/ghostscript-9.54.0-linux-x86_64.tgz"
-BINARY="ghostscript-9.54.0-linux-x86_64/gs-9540-linux-x86_64"
-LOCATION="$BUILD_DIR/vendor/gs/bin"
+PACKAGE="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.gz"
+LOCATION="$BUILD_DIR/vendor/gs"
 
-mkdir -p $LOCATION
-curl $PACKAGE -L -s -o - | tar xzf - -C $LOCATION
-mv $LOCATION/$BINARY $LOCATION/gs
+mkdir -p $LOCATION /tmp/gs-source
+curl $PACKAGE -L -s -f -o - | tar xzf - -C /tmp/gs-source --strip-components=1
+
+# Heroku runs the app from /app, so the prefix must be /app/vendor/gs
+# even though the files are staged and then copied into the build dir.
+cd /tmp/gs-source
+./configure --prefix=/app/vendor/gs --without-x --disable-cups > /dev/null
+make -j"$(nproc)" > /dev/null
+make install DESTDIR=/tmp/gs-stage > /dev/null
+cp -a /tmp/gs-stage/app/vendor/gs/. $LOCATION
 
 echo "-----> Building runtime environment for Ghostscript"
 
